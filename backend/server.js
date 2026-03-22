@@ -30,11 +30,6 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Local dev server
-if (process.argv[1].endsWith('server.js')) {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
 
-export { app };
+
+export default app;
