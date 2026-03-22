@@ -1,12 +1,12 @@
 {
-  "name": "arvyax-deployment",
+  "name": "arvyax-journal-system",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "prisma generate && prisma db push",
-    "vercel-build": "prisma generate && prisma db push",
     "dev": "vercel dev",
-    "dev-local": "node backend/server.js"
+    "dev-local": "cd backend && node server.js",
+    "build": "cd backend && prisma generate && prisma db push",
+    "vercel-build": "cd backend && prisma generate && prisma db push"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
@@ -18,3 +18,4 @@
     "pg": "^8.13.0",
     "prisma": "^5.20.0"
   }
+}
