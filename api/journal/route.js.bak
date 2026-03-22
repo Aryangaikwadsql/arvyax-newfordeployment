@@ -1,0 +1,3 @@
+// Backup of old monolith route.js
+// Migrated to separate routes: /api/create, /analyze, /entries/[userId], /insights/[userId]
+
