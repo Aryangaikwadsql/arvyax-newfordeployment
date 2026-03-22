@@ -3,16 +3,18 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "prisma generate",
-    "dev": "node backend/server.js"
+    "build": "prisma generate && prisma db push",
+    "vercel-build": "prisma generate && prisma db push",
+    "dev": "vercel dev",
+    "dev-local": "node backend/server.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
-    "ioredis": "^5.4.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.0",
     "pg": "^8.13.0",
     "prisma": "^5.20.0"
   }
-}

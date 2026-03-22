@@ -24,7 +24,7 @@
 - Static frontend with SPA routing.
 
 ## Test
-curl -X POST $VERCEL_URL/api/journal -d '{\"userId\":\"123\",\"ambience\":\"forest\",\"text\":\"Test\"}'
+curl -X POST $VERCEL_URL/api/journal -d '{\"userId\":\"user1\",\"ambience\":\"forest\",\"text\":\"Test\"}'
 
 Your app is now hosted on Vercel!
 

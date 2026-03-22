@@ -1,27 +1,27 @@
-// CommonJS for Vercel
-// Prisma singleton
-const prisma = require('../db.js');
-const { analyzeEmotion } = require('../services/llm.js');
-// Fixed paths
+// Vercel serverless handler for journal APIs
+const prisma = require('../backend/db.js');
+const { analyzeEmotion } = require('../backend/services/llm.js');
 
 module.exports = async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const path = url.pathname.slice(1); // /api/journal/insights/123 → journal/insights/123
+  const { method, url, headers, body } = req;
+  const pathname = new URL(url, `http://${headers.host}`).pathname.slice(1);
 
-  if (req.method === 'POST') {
+  const pathParts = pathname.split('/').slice(1);
+
+  if (method === 'POST') {
     try {
-      const body = JSON.parse(req.body || '{}');
+      const data = JSON.parse(body || '{}');
 
-      if (path === 'journal/analyze') {
-        const { text } = body;
+      if (pathParts[1] === 'analyze') {
+        const { text } = data;
         if (!text) return res.status(400).json({ error: 'Missing text' });
         const analysis = await analyzeEmotion(text);
         return res.json(analysis);
       }
 
-      const { userId, ambience, text } = body;
+      const { userId, ambience, text } = data;
       if (!userId || !ambience || !text) {
-        return res.status(400).json({ error: 'Missing fields' });
+        return res.status(400).json({ error: 'Missing userId, ambience, text' });
       }
 
       let analysis = null;
@@ -36,34 +36,26 @@ module.exports = async (req, res) => {
           userId,
           ambience,
           text,
-          emotion: analysis?.emotion,
-          keywords: JSON.stringify(analysis?.keywords || []),
-          summary: analysis?.summary,
+  emotion: analysis?.emotion || null,
+          keywords: analysis?.keywords ? JSON.stringify(analysis.keywords) : null,
+          summary: analysis?.summary || null,
         },
       });
 
       return res.status(201).json({ id: entry.id, message: 'Entry created' });
-
-      if (path === 'journal/analyze') {
-        const body = JSON.parse(req.body || '{}');
-        const { text } = body;
-        if (!text) return res.status(400).json({ error: 'Missing text' });
-        const analysis = await analyzeEmotion(text);
-        return res.json(analysis);
-      }
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: err.message });
     }
   }
 
-  if (req.method === 'GET') {
+  if (method === 'GET') {
     try {
-      const pathParts = path.split('/').slice(2);
-      if (pathParts[0] === 'insights') {
-        const userId = pathParts[1];
+      if (pathParts[1] === 'insights') {
+        const userId = pathParts[2];
+        if (!userId) return res.status(400).json({ error: 'Missing userId' });
+
         const entries = await prisma.entry.findMany({ where: { userId } });
-        // insights...
         const ambienceCount = {};
         const emotionCount = {};
         const allKeywords = new Set();
@@ -71,8 +63,9 @@ module.exports = async (req, res) => {
         entries.forEach(entry => {
           ambienceCount[entry.ambience] = (ambienceCount[entry.ambience] || 0) + 1;
           if (entry.emotion) emotionCount[entry.emotion] = (emotionCount[entry.emotion] || 0) + 1;
-          const kws = JSON.parse(entry.keywords || '[]');
-          kws.forEach(kw => allKeywords.add(kw));
+          if (entry.keywords) {
+            JSON.parse(entry.keywords).forEach(kw => allKeywords.add(kw));
+          }
         });
 
         return res.json({
@@ -83,7 +76,7 @@ module.exports = async (req, res) => {
         });
       }
 
-      const userId = pathParts[0];
+      const userId = pathParts[1];
       const entries = await prisma.entry.findMany({
         where: userId ? { userId } : {},
         orderBy: { createdAt: 'desc' },

@@ -1,11 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis;
 
-const prisma = globalForPrisma.prisma || new PrismaClient({
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: ['warn', 'error']
 });
 
 if (process.env.VERCEL_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-module.exports = prisma;

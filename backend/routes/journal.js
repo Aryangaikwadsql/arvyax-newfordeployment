@@ -1,11 +1,11 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
   createEntry,
   getEntries,
   analyze,
   getInsights
-} = require('../controllers/journalController');
+} from '../controllers/journalController.js';
 
 router.post('/journal', createEntry);
 router.get('/journal', getEntries);
@@ -13,4 +13,4 @@ router.get('/journal/:userId', getEntries);
 router.post('/journal/analyze', analyze);
 router.get('/journal/insights/:userId', getInsights);
 
-module.exports = router;
+export default router;

@@ -1,12 +1,23 @@
-const rateLimit = require('express-rate-limit');
+const requests = new Map();
 
-const journalLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 min
-  max: 100, // 100 requests/min
-  message: 'Too many journal requests, slow down.',
-  standardHeaders: true,
-  legacyHeaders: false
-});
+export const journalLimiter = (req, res, next) => {
+  const ip = req.ip || req.connection.remoteAddress;
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const max = 100;
 
-module.exports = journalLimiter;
+  const ipRequests = requests.get(ip) || [];
+  const valid = ipRequests.filter(time => now - time < windowMs);
+  valid.push(now);
+
+  if (valid.length > max) {
+    return res.status(429).json({ error: 'Too many journal requests, slow down.' });
+  }
+
+  requests.set(ip, valid);
+  // Cleanup old
+  if (requests.size > 1000) requests.clear();
+
+  next();
+};
 
